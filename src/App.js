@@ -29,7 +29,7 @@ const fetchNdjson = (setVal) => {
     const exampleReader = ndjsonStream(response.body).getReader();
 
     let result;
-    console.log("reading");
+   
     while (
       (!result || !result.done) &&
       loadInitial &&
@@ -37,26 +37,19 @@ const fetchNdjson = (setVal) => {
     ) {
       result = await exampleReader.read();
       streamedValues.push(result.value);
-      console.log("first number of values");
+    
       if (streamedValues.length === INITIAL_LOAD) {
         setVal((prev) => {
           return [...prev, streamedValues];
         });
       }
       loadInitial = false;
-      console.log(
-        result.value?.id,
-        result.done,
-        result.value,
-        streamedValues.length
-      );
     }
 
     const loadMore = async () => {
       while (moreData.length < LOAD_INCREMENT) {
         result = await exampleReader.read();
         moreData.push(result.value);
-        console.log("loading more!!!", result.value?._id?.$oid);
       }
 
       if (moreData.length === LOAD_INCREMENT) {
@@ -89,17 +82,7 @@ export default () => {
   return (
     <>
       <h2>Streaming Results:</h2>
-      {JSON.stringify(val)}
-      {/*{JSON.stringify(*/}
-      {/*  val.map((obj) => {*/}
-      {/*    const el = obj[0];*/}
-      {/*    console.log("ALL", obj);*/}
-      {/*    // const { _id, price, ticker, shares } = el;*/}
-      {/*    if (el) {*/}
-      {/*      return `ID: ${el?._id.$oid}: The price is ${el?.price} for ${el?.ticker} with ${el?.shares} shares.`;*/}
-      {/*    }*/}
-      {/*  })*/}
-      {/*)}*/}
+      {JSON.stringify(val)}    
     </>
   );
 };
