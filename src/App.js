@@ -104,6 +104,8 @@ export default () => {
   );
 };
 
+// More info on can-ndjson-stream's API
+// https://canjs.com/doc/can-ndjson-stream.html
 // More info on NDJSON performance improvements
 // https://davidwalsh.name/streaming-data-fetch-ndjson
 // https://www.reddit.com/r/learnreactjs/comments/lx7hvu/how_do_you_fetch_a_stream_of_data_in_a_react_app/
