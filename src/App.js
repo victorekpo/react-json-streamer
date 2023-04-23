@@ -14,14 +14,16 @@ const URLPath =
 
 const testPayLoadURL = `${baseURL}/${URLPath}`;
 
-const INITIAL_LOAD = 1;
-const LOAD_INCREMENT = 10;
+const INITIAL_LOAD = 10;
+const LOAD_INCREMENT = 5;
+const TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
 
-const fetchNdjson = (setval, count, setCount, more, setMore) => {
+const fetchNdjson = (setVal) => {
   console.log("fetching");
   let streamedValues = [];
   let moreData = [];
   let loadInitial = true;
+
   (async () => {
     const response = await fetch(testPayLoadURL);
     const exampleReader = ndjsonStream(response.body).getReader();
@@ -33,12 +35,11 @@ const fetchNdjson = (setval, count, setCount, more, setMore) => {
       loadInitial &&
       streamedValues.length < INITIAL_LOAD
     ) {
-      setCount(count++);
       result = await exampleReader.read();
       streamedValues.push(result.value);
-      console.log("first 1 values");
+      console.log("first number of values");
       if (streamedValues.length === INITIAL_LOAD) {
-        setval((prev) => {
+        setVal((prev) => {
           return [...prev, streamedValues];
         });
       }
@@ -51,15 +52,16 @@ const fetchNdjson = (setval, count, setCount, more, setMore) => {
         streamedValues.length
       );
     }
+
     const loadMore = async () => {
-      while (moreData.length < 20) {
+      while (moreData.length < LOAD_INCREMENT) {
         result = await exampleReader.read();
         moreData.push(result.value);
         console.log("loading more!!!", result.value?._id?.$oid);
       }
 
-      if (moreData.length === 20) {
-        setval((prev) => {
+      if (moreData.length === LOAD_INCREMENT) {
+        setVal((prev) => {
           const temp = moreData;
           moreData = [];
           return [...prev, temp];
@@ -71,7 +73,7 @@ const fetchNdjson = (setval, count, setCount, more, setMore) => {
         setTimeout(async () => {
           await loadMore();
           console.log("another batch");
-        }, 1000);
+        }, TIME_INTERVAL_BETWEEN_LOADS);
     };
 
     if (!result.done) await loadMore();
