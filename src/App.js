@@ -56,7 +56,7 @@ const fetchNdjson = (val, setVal) => {
         setVal((prev) => {
           const temp = moreData;
           moreData = [];
-          console.log(prev.length);
+          // console.log(prev.length);
           return [...(prev.length < 0 ? prev : []), temp];
         });
       }
