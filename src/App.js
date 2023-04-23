@@ -14,8 +14,8 @@ const URLPath =
 
 const testPayLoadURL = `${baseURL}/${URLPath}`;
 
-const INITIAL_LOAD = 10;
-const LOAD_INCREMENT = 1000;
+const INITIAL_LOAD = 100;
+const LOAD_INCREMENT = 50;
 const TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
 
 const fetchNdjson = (setVal) => {
