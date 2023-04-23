@@ -16,9 +16,9 @@ const testPayLoadURL = `${baseURL}/${URLPath}`;
 
 const INITIAL_LOAD = 100;
 const LOAD_INCREMENT = 50;
-const TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
+const TIME_INTERVAL_BETWEEN_LOADS = 2000; // 1 second
 
-const fetchNdjson = (setVal) => {
+const fetchNdjson = (val, setVal) => {
   console.log("fetching");
   let streamedValues = [];
   let moreData = [];
@@ -56,7 +56,8 @@ const fetchNdjson = (setVal) => {
         setVal((prev) => {
           const temp = moreData;
           moreData = [];
-          return [...prev, temp];
+          console.log(prev.length);
+          return [...(prev.length < 0 ? prev : []), temp];
         });
       }
 
@@ -77,7 +78,7 @@ export default () => {
   const [val, setVal] = useState([]);
 
   useEffect(() => {
-    fetchNdjson(setVal);
+    fetchNdjson(val, setVal);
   }, []);
 
   return (
