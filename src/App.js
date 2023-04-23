@@ -9,7 +9,7 @@ const baseURL =
 
 const URLPath =
   // "large-file.json"
-  "trades.json";
+  "trades.json"; // has 1 million rows (243MB JSON)
 //"city_inspections.json";
 
 const testPayLoadURL = `${baseURL}/${URLPath}`;
@@ -45,7 +45,6 @@ const fetchNdjson = (setVal) => {
       }
       loadInitial = false;
       console.log(
-        count,
         result.value?.id,
         result.done,
         result.value,
@@ -82,10 +81,9 @@ const fetchNdjson = (setVal) => {
 
 export default () => {
   const [val, setVal] = useState([]);
-  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    fetchNdjson(setVal, count, setCount);
+    fetchNdjson(setVal);
   }, []);
 
   return (
