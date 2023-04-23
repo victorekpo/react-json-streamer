@@ -15,7 +15,7 @@ const URLPath =
 const testPayLoadURL = `${baseURL}/${URLPath}`;
 
 const INITIAL_LOAD = 10;
-const LOAD_INCREMENT = 5;
+const LOAD_INCREMENT = 1000;
 const TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
 
 const fetchNdjson = (setVal) => {
@@ -103,3 +103,7 @@ export default () => {
     </>
   );
 };
+
+// More info on NDJSON performance improvements
+// https://davidwalsh.name/streaming-data-fetch-ndjson
+// https://www.reddit.com/r/learnreactjs/comments/lx7hvu/how_do_you_fetch_a_stream_of_data_in_a_react_app/
