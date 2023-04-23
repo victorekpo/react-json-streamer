@@ -64,7 +64,7 @@ const fetchNdjson = (setVal) => {
       if (!result.done)
         setTimeout(async () => {
           await loadMore();
-          //  window.scrollTo(0, document.body.scrollHeight);
+          window.scrollTo(0, document.body.scrollHeight);
           console.log("another batch");
         }, TIME_INTERVAL_BETWEEN_LOADS);
     };
