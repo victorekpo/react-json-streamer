@@ -113,7 +113,8 @@ export default () => {
                 arr.map((obj) => {
                   return (
                     <div key={uuid.v1()}>
-                      {`${obj?.address?.number} ${obj?.address?.street} ${obj?.address?.city}`.toLowerCase()}
+                      {obj?.address &&
+                        `${obj?.address?.number} ${obj?.address?.street} ${obj?.address?.city}`.toLowerCase()}
                     </div>
                   );
                 })
