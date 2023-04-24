@@ -40,9 +40,7 @@ const fetchNdjson = (val, setVal) => {
       streamedValues.push(result.value);
 
       if (streamedValues.length === INITIAL_LOAD) {
-        setVal((prev) => {
-          return [...prev, streamedValues];
-        });
+        setVal(streamedValues);
       }
       loadInitial = false;
     }
@@ -58,7 +56,7 @@ const fetchNdjson = (val, setVal) => {
           const temp = moreData;
           moreData = [];
           // console.log(prev.length);
-          return [...(prev.length < 0 ? prev : []), temp];
+          return [...(prev.length === 0 ? prev : []), temp];
         });
       }
 
@@ -97,6 +95,7 @@ export default () => {
             <td>
               {val.map((arr) =>
                 arr.map((obj) => {
+                  !obj?.result && console.log(obj);
                   return <div key={uuid.v1()}>{obj?.business_name}</div>;
                 })
               )}
