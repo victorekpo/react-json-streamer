@@ -16,7 +16,7 @@ const testPayLoadURL = `${baseURL}/${URLPath}`;
 
 const INITIAL_LOAD = 100;
 const LOAD_INCREMENT = 50;
-const TIME_INTERVAL_BETWEEN_LOADS = 2000; // 1 second
+const TIME_INTERVAL_BETWEEN_LOADS = 500; // 1 second
 
 const fetchNdjson = (val, setVal) => {
   console.log("fetching");
@@ -57,7 +57,7 @@ const fetchNdjson = (val, setVal) => {
           const temp = moreData;
           moreData = [];
           // console.log(prev.length);
-          return [...(prev.length < 0 ? prev : []), temp];
+          return [...(prev.length === 0 ? prev : []), temp];
         });
       }
 
