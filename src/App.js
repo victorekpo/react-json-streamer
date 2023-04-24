@@ -18,8 +18,9 @@ const testPayLoadURL = `${baseURL}/${URLPath}`;
 const INITIAL_LOAD = 100;
 const LOAD_INCREMENT = 50;
 const TIME_INTERVAL_BETWEEN_LOADS = 0; // 1 second
+const PAGE_SIZE = 0; // number of batches per page or 0 for only the latest batch
 
-const fetchNdjson = (val, setVal) => {
+const fetchNdjson = (val, setVal, setIsLoading) => {
   console.log("fetching");
   let streamedValues = [];
   let moreData = [];
@@ -43,6 +44,7 @@ const fetchNdjson = (val, setVal) => {
         setVal(streamedValues);
       }
       loadInitial = false;
+      setIsLoading(false);
     }
 
     const loadMore = async () => {
@@ -56,7 +58,7 @@ const fetchNdjson = (val, setVal) => {
           const temp = moreData;
           moreData = [];
           // console.log(prev.length);
-          return [...(prev.length === 0 ? prev : []), temp];
+          return [...(prev.length === PAGE_SIZE ? prev : []), temp];
         });
       }
 
@@ -75,12 +77,15 @@ const fetchNdjson = (val, setVal) => {
 
 export default () => {
   const [val, setVal] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchNdjson(val, setVal);
+    fetchNdjson(val, setVal, setIsLoading);
   }, []);
 
-  return (
+  return isLoading ? (
+    "loading"
+  ) : (
     <>
       <h2>Streaming Results:</h2>
       <table className="streamTable">
