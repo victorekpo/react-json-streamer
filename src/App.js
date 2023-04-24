@@ -1,6 +1,7 @@
 import React from "react";
 import ndjsonStream from "can-ndjson-stream";
 import { useEffect, useState } from "react";
+import * as uuid from "uuid";
 
 const baseURL =
   //  "https://raw.githubusercontent.com/json-iterator/test-data/master";
@@ -16,7 +17,7 @@ const testPayLoadURL = `${baseURL}/${URLPath}`;
 
 const INITIAL_LOAD = 100;
 const LOAD_INCREMENT = 50;
-const TIME_INTERVAL_BETWEEN_LOADS = 2000; // 1 second
+const TIME_INTERVAL_BETWEEN_LOADS = 0; // 1 second
 
 const fetchNdjson = (val, setVal) => {
   console.log("fetching");
@@ -84,7 +85,50 @@ export default () => {
   return (
     <>
       <h2>Streaming Results:</h2>
-      {JSON.stringify(val)}
+      <table className="streamTable">
+        <tbody>
+          <tr>
+            <th>Business Name</th>
+            <th>Business Sector</th>
+            <th>Address</th>
+            <th>Result</th>
+          </tr>
+          <tr>
+            <td>
+              {val.map((arr) =>
+                arr.map((obj) => {
+                  return <div key={uuid.v1()}>{obj.business_name}</div>;
+                })
+              )}
+            </td>
+            <td>
+              {val.map((arr) =>
+                arr.map((obj) => {
+                  return <div key={uuid.v1()}>{obj.sector}</div>;
+                })
+              )}
+            </td>
+            <td>
+              {val.map((arr) =>
+                arr.map((obj) => {
+                  return (
+                    <div key={uuid.v1()}>
+                      {`${obj.address.number} ${obj.address.street} ${obj.address.city}`.toLowerCase()}
+                    </div>
+                  );
+                })
+              )}
+            </td>
+            <td>
+              {val.map((arr) =>
+                arr.map((obj) => {
+                  return <div key={uuid.v1()}>{`${obj.result}`}</div>;
+                })
+              )}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </>
   );
 };

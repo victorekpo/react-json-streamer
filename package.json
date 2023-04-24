@@ -25,7 +25,8 @@
     "stream": "^0.0.2",
     "stream-browserify": "^3.0.0",
     "uti": "^7.1.1",
-    "util": "^0.12.5"
+    "util": "^0.12.5",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.21.4",
