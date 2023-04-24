@@ -97,14 +97,14 @@ export default () => {
             <td>
               {val.map((arr) =>
                 arr.map((obj) => {
-                  return <div key={uuid.v1()}>{obj.business_name}</div>;
+                  return <div key={uuid.v1()}>{obj?.business_name}</div>;
                 })
               )}
             </td>
             <td>
               {val.map((arr) =>
                 arr.map((obj) => {
-                  return <div key={uuid.v1()}>{obj.sector}</div>;
+                  return <div key={uuid.v1()}>{obj?.sector}</div>;
                 })
               )}
             </td>
@@ -113,7 +113,7 @@ export default () => {
                 arr.map((obj) => {
                   return (
                     <div key={uuid.v1()}>
-                      {`${obj.address.number} ${obj.address.street} ${obj.address.city}`.toLowerCase()}
+                      {`${obj?.address?.number} ${obj?.address?.street} ${obj?.address?.city}`.toLowerCase()}
                     </div>
                   );
                 })
@@ -122,7 +122,7 @@ export default () => {
             <td>
               {val.map((arr) =>
                 arr.map((obj) => {
-                  return <div key={uuid.v1()}>{`${obj.result}`}</div>;
+                  return <div key={uuid.v1()}>{`${obj?.result}`}</div>;
                 })
               )}
             </td>
