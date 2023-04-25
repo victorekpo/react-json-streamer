@@ -1,6 +1,6 @@
 import React from "react";
 import ndjsonStream from "can-ndjson-stream";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import * as uuid from "uuid";
 
 const baseURL =
@@ -20,17 +20,20 @@ const LOAD_INCREMENT = 50;
 const TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
 const PAGE_SIZE = 0; // number of batches per page or 0 for only the latest batch
 
+let stream;
 let toggleStream = true;
+let ndjsonStreamer;
 
-const fetchNdjson = (val, setVal, setIsLoading) => {
+const fetchNdjson = (opts) => {
+  const { url, setValues, setIsLoading } = opts;
   console.log("fetching");
   let streamedValues = [];
   let moreData = [];
   let loadInitial = true;
 
   (async () => {
-    const response = await fetch(testPayLoadURL);
-    const exampleReader = ndjsonStream(response.body).getReader();
+    const response = await fetch(url);
+    ndjsonStreamer = ndjsonStream(response.body).getReader();
 
     let result;
 
@@ -40,13 +43,13 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
       streamedValues.length < INITIAL_LOAD
     ) {
       if (toggleStream) {
-        result = await exampleReader.read();
+        result = await ndjsonStreamer.read();
         streamedValues.push(result.value);
       } else {
         break;
       }
       if (streamedValues.length === INITIAL_LOAD) {
-        setVal(streamedValues);
+        setValues(streamedValues);
       }
       loadInitial = false;
       setIsLoading(false);
@@ -55,7 +58,7 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
     const loadMore = async () => {
       while (moreData.length < LOAD_INCREMENT) {
         if (toggleStream) {
-          result = await exampleReader.read();
+          result = await ndjsonStreamer.read();
           moreData.push(result.value);
         } else {
           break;
@@ -63,7 +66,7 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
       }
 
       if (moreData.length === LOAD_INCREMENT) {
-        setVal((prev) => {
+        setValues((prev) => {
           const temp = moreData;
           moreData = [];
           // console.log(prev.length);
@@ -86,12 +89,21 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
 };
 
 export default () => {
+  const [currentDataSource, setCurrentDataSource] = useState(testPayLoadURL);
+  const [currentStreamSpeed, setCurrentStreamSpeed] = useState(
+    TIME_INTERVAL_BETWEEN_LOADS
+  );
   const [val, setVal] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [toggle, setToggle] = useState(true);
 
   useEffect(() => {
-    fetchNdjson(val, setVal, setIsLoading);
+    const opts = {
+      url: testPayLoadURL,
+      setValues: setVal,
+      setIsLoading,
+    };
+    stream = fetchNdjson(opts);
   }, []);
 
   const handleButtonClick = () => {
@@ -109,6 +121,52 @@ export default () => {
     );
   };
 
+  const formDataSource = useRef();
+  const formStreamSpeed = useRef();
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    const inputDataSource = formDataSource.current.value;
+    const inputStreamSpeed = formStreamSpeed.current.value;
+    console.log(inputDataSource, inputStreamSpeed);
+
+    if (inputDataSource) {
+      // do something
+      const newURL = new URL(inputDataSource); // serialize URL
+      setCurrentDataSource(newURL.href);
+      const opts = {
+        url: newURL?.href,
+        setValues: setVal,
+        setIsLoading,
+      };
+      stream = fetchNdjson(opts);
+    }
+
+    if (inputStreamSpeed) {
+      //
+    }
+  };
+  const showForm = () => (
+    <div className="mainForm">
+      <h3>Update Stream</h3>
+      <form onSubmit={handleButtonClick}>
+        <label>
+          <input
+            ref={formDataSource}
+            type="text"
+            placeholder="Data source url"
+          />
+          <input
+            ref={formStreamSpeed}
+            type="text"
+            placeholder="Stream update (in ms)"
+          />
+        </label>
+        <input type="submit" onClick={handleFormSubmit} value="Submit" />
+      </form>
+    </div>
+  );
+
   return isLoading ? (
     `loading`
   ) : (
@@ -116,53 +174,59 @@ export default () => {
       <div className="mainContainer">
         <h1>React NDJSON Streamer Example</h1>
         <h2>{showButton()}Streaming Results:</h2>
-        <p>Source: {testPayLoadURL}</p>
-        <table className="streamTable">
-          <tbody>
-            <tr>
-              <th>Business Name</th>
-              <th>Business Sector</th>
-              <th>Address</th>
-              <th>Result</th>
-            </tr>
-            <tr>
-              <td>
-                {val.map((arr) =>
-                  arr.map((obj) => {
-                    !obj?.result && console.log(obj);
-                    return <div key={uuid.v1()}>{obj?.business_name}</div>;
-                  })
-                )}
-              </td>
-              <td>
-                {val.map((arr) =>
-                  arr.map((obj) => {
-                    return <div key={uuid.v1()}>{obj?.sector}</div>;
-                  })
-                )}
-              </td>
-              <td>
-                {val.map((arr) =>
-                  arr.map((obj) => {
-                    return (
-                      <div key={uuid.v1()}>
-                        {obj?.address &&
-                          `${obj?.address?.number} ${obj?.address?.street} ${obj?.address?.city}`.toLowerCase()}
-                      </div>
-                    );
-                  })
-                )}
-              </td>
-              <td>
-                {val.map((arr) =>
-                  arr.map((obj) => {
-                    return <div key={uuid.v1()}>{`${obj?.result}`}</div>;
-                  })
-                )}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        {showForm()}
+        <p>
+          Source: {currentDataSource} | Speed: {currentStreamSpeed}ms
+        </p>
+        {currentDataSource === testPayLoadURL && (
+          <table className="streamTable">
+            <tbody>
+              <tr>
+                <th>Business Name</th>
+                <th>Business Sector</th>
+                <th>Address</th>
+                <th>Result</th>
+              </tr>
+              <tr>
+                <td>
+                  {val.map((arr) =>
+                    arr.map((obj) => {
+                      //   !obj?.result && console.log(obj);
+                      return <div key={uuid.v1()}>{obj?.business_name}</div>;
+                    })
+                  )}
+                </td>
+                <td>
+                  {val.map((arr) =>
+                    arr.map((obj) => {
+                      return <div key={uuid.v1()}>{obj?.sector}</div>;
+                    })
+                  )}
+                </td>
+                <td>
+                  {val.map((arr) =>
+                    arr.map((obj) => {
+                      return (
+                        <div key={uuid.v1()}>
+                          {obj?.address &&
+                            `${obj?.address?.number} ${obj?.address?.street} ${obj?.address?.city}`.toLowerCase()}
+                        </div>
+                      );
+                    })
+                  )}
+                </td>
+                <td>
+                  {val.map((arr) =>
+                    arr.map((obj) => {
+                      return <div key={uuid.v1()}>{`${obj?.result}`}</div>;
+                    })
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        )}
+        {currentDataSource !== testPayLoadURL && JSON.stringify(val)}
       </div>
     </>
   );
