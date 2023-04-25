@@ -17,7 +17,7 @@ const testPayLoadURL = `${baseURL}/${URLPath}`;
 
 const INITIAL_LOAD = 100;
 const LOAD_INCREMENT = 50;
-const TIME_INTERVAL_BETWEEN_LOADS = 0; // 1 second
+const TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
 const PAGE_SIZE = 0; // number of batches per page or 0 for only the latest batch
 
 let toggleStream = true;
@@ -102,60 +102,68 @@ export default () => {
   };
 
   const showButton = () => {
-    return <button onClick={handleButtonClick}>Toggle Stream</button>;
+    return (
+      <button onClick={handleButtonClick}>
+        {toggle ? "Pause" : "Continue"}
+      </button>
+    );
   };
 
   return isLoading ? (
     `loading`
   ) : (
     <>
-      <h2>{showButton()}Streaming Results:</h2>
-      <table className="streamTable">
-        <tbody>
-          <tr>
-            <th>Business Name</th>
-            <th>Business Sector</th>
-            <th>Address</th>
-            <th>Result</th>
-          </tr>
-          <tr>
-            <td>
-              {val.map((arr) =>
-                arr.map((obj) => {
-                  !obj?.result && console.log(obj);
-                  return <div key={uuid.v1()}>{obj?.business_name}</div>;
-                })
-              )}
-            </td>
-            <td>
-              {val.map((arr) =>
-                arr.map((obj) => {
-                  return <div key={uuid.v1()}>{obj?.sector}</div>;
-                })
-              )}
-            </td>
-            <td>
-              {val.map((arr) =>
-                arr.map((obj) => {
-                  return (
-                    <div key={uuid.v1()}>
-                      {obj?.address &&
-                        `${obj?.address?.number} ${obj?.address?.street} ${obj?.address?.city}`.toLowerCase()}
-                    </div>
-                  );
-                })
-              )}
-            </td>
-            <td>
-              {val.map((arr) =>
-                arr.map((obj) => {
-                  return <div key={uuid.v1()}>{`${obj?.result}`}</div>;
-                })
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="mainContainer">
+        <h1>React NDJSON Streamer Example</h1>
+        <h2>{showButton()}Streaming Results:</h2>
+        <p>Source: {testPayLoadURL}</p>
+        <table className="streamTable">
+          <tbody>
+            <tr>
+              <th>Business Name</th>
+              <th>Business Sector</th>
+              <th>Address</th>
+              <th>Result</th>
+            </tr>
+            <tr>
+              <td>
+                {val.map((arr) =>
+                  arr.map((obj) => {
+                    !obj?.result && console.log(obj);
+                    return <div key={uuid.v1()}>{obj?.business_name}</div>;
+                  })
+                )}
+              </td>
+              <td>
+                {val.map((arr) =>
+                  arr.map((obj) => {
+                    return <div key={uuid.v1()}>{obj?.sector}</div>;
+                  })
+                )}
+              </td>
+              <td>
+                {val.map((arr) =>
+                  arr.map((obj) => {
+                    return (
+                      <div key={uuid.v1()}>
+                        {obj?.address &&
+                          `${obj?.address?.number} ${obj?.address?.street} ${obj?.address?.city}`.toLowerCase()}
+                      </div>
+                    );
+                  })
+                )}
+              </td>
+              <td>
+                {val.map((arr) =>
+                  arr.map((obj) => {
+                    return <div key={uuid.v1()}>{`${obj?.result}`}</div>;
+                  })
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </>
   );
 };
