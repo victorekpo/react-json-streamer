@@ -17,12 +17,12 @@ const testPayLoadURL = `${baseURL}/${URLPath}`;
 
 const INITIAL_LOAD = 100;
 const LOAD_INCREMENT = 50;
-const PAGE_SIZE = 0; // number of batches per page or 0 for only the latest batch
 
 let stream;
-let toggleStream = true;
+let toggleStreamContinue = true;
 let ndjsonStreamer;
 let TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
+let PAGE_SIZE = 0; // number of batches per page or 0 for only the latest batch
 
 const fetchNdjson = (opts) => {
   const { url, setValues, setIsLoading } = opts;
@@ -42,7 +42,7 @@ const fetchNdjson = (opts) => {
       loadInitial &&
       streamedValues.length < INITIAL_LOAD
     ) {
-      if (toggleStream) {
+      if (toggleStreamContinue) {
         result = await ndjsonStreamer.read();
         streamedValues.push(result.value);
       } else {
@@ -57,7 +57,7 @@ const fetchNdjson = (opts) => {
 
     const loadMore = async () => {
       while (!result.done && moreData.length < LOAD_INCREMENT) {
-        if (toggleStream) {
+        if (toggleStreamContinue) {
           result = await ndjsonStreamer.read();
           moreData.push(result.value);
         } else {
@@ -70,8 +70,11 @@ const fetchNdjson = (opts) => {
           const temp = moreData;
           moreData = [];
           // console.log(prev.length);
-          console.log("another batch");
-          return [...(prev.length === PAGE_SIZE ? prev : []), temp];
+          console.log("another batch", PAGE_SIZE, prev.length);
+          return [
+            ...(prev.length <= PAGE_SIZE && PAGE_SIZE !== 0 ? prev : []),
+            temp,
+          ];
         });
       }
 
@@ -95,43 +98,45 @@ export default () => {
   );
   const [val, setVal] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [toggle, setToggle] = useState(true);
+  const [toggleContinue, setToggleContinue] = useState(toggleStreamContinue);
 
   useEffect(() => {
     const opts = {
-      url: testPayLoadURL,
+      url: currentDataSource,
       setValues: setVal,
       setIsLoading,
     };
     stream = fetchNdjson(opts);
   }, []);
 
-  const handleButtonClick = () => {
+  const handlePauseButtonClick = () => {
     console.log("ive been clicked");
-    toggleStream = !toggle;
-    setToggle(!toggle);
-    console.log(toggle);
+    toggleStreamContinue = !toggleContinue;
+    setToggleContinue(!toggleContinue);
+    console.log(toggleContinue);
   };
 
-  const showButton = () => {
+  const showPauseButton = () => {
     return (
-      <button onClick={handleButtonClick}>
-        {toggle ? "Pause" : "Continue"}
+      <button onClick={handlePauseButtonClick}>
+        {toggleContinue ? "Pause" : "Continue"}
       </button>
     );
   };
 
   const formDataSource = useRef();
   const formStreamSpeed = useRef();
+  const formStreamPageSize = useRef();
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
     const inputDataSource = formDataSource.current.value;
     const inputStreamSpeed = formStreamSpeed.current.value;
-    console.log(inputDataSource, inputStreamSpeed);
+    const inputPageSize = formStreamPageSize.current.value;
+
+    console.log(inputDataSource, inputStreamSpeed, inputPageSize);
 
     if (inputDataSource) {
-      // do something
       const newURL = new URL(inputDataSource); // serialize URL
       setCurrentDataSource(newURL.href);
       const opts = {
@@ -143,10 +148,13 @@ export default () => {
     }
 
     if (inputStreamSpeed) {
-      //
       const newStreamSpeed = Number(inputStreamSpeed);
       setCurrentStreamSpeed(newStreamSpeed);
       TIME_INTERVAL_BETWEEN_LOADS = newStreamSpeed;
+    }
+
+    if (inputPageSize) {
+      PAGE_SIZE = inputPageSize;
     }
   };
   const showForm = () => (
@@ -159,14 +167,30 @@ export default () => {
             type="text"
             placeholder="Data source url"
           />
+        </label>
+        <label>
           <input
             ref={formStreamSpeed}
             type="text"
             placeholder="Stream speed (in ms)"
           />
         </label>
+        <label>
+          <input
+            ref={formStreamPageSize}
+            type="text"
+            placeholder="# of batches per page"
+            title="Set to 0 for ticker, high number may cause memory issues"
+          />
+        </label>
         <input type="submit" value="Submit" />
       </form>
+      <p>
+        Note: Update the current stream using the form above. The number of
+        batches when set to 0 returns a ticker (new batch per page). <br />
+        <br />
+        WARN: A very high number of batches per page will cause memory issues.
+      </p>
     </div>
   );
 
@@ -176,18 +200,19 @@ export default () => {
     <>
       <div className="mainContainer">
         <h1>React NDJSON Streamer Example</h1>
-        <h2>{showButton()}Streaming Results:</h2>
-        {showForm()}
-        <p>
-          Source: {currentDataSource} | Speed: {currentStreamSpeed}ms
+        <h2>{showPauseButton()}Streaming Results:</h2>
+        <div className="topInfo">
+          Current DataSource: {currentDataSource} | Speed: {currentStreamSpeed}
+          ms
           <br />
           <br />
+          {showForm()}
           Other Examples:
           <br />
           https://dl.dropboxusercontent.com/s/gxbsj271j5pevec/trades.json
           <br />
           https://raw.githubusercontent.com/ozlerhakan/mongodb-json-files/master/datasets/city_inspections.json
-        </p>
+        </div>
         {currentDataSource === testPayLoadURL && (
           <table className="streamTable">
             <tbody>
