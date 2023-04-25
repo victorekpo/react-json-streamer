@@ -17,12 +17,12 @@ const testPayLoadURL = `${baseURL}/${URLPath}`;
 
 const INITIAL_LOAD = 100;
 const LOAD_INCREMENT = 50;
-const TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
 const PAGE_SIZE = 0; // number of batches per page or 0 for only the latest batch
 
 let stream;
 let toggleStream = true;
 let ndjsonStreamer;
+let TIME_INTERVAL_BETWEEN_LOADS = 1000; // 1 second
 
 const fetchNdjson = (opts) => {
   const { url, setValues, setIsLoading } = opts;
@@ -56,7 +56,7 @@ const fetchNdjson = (opts) => {
     }
 
     const loadMore = async () => {
-      while (moreData.length < LOAD_INCREMENT) {
+      while (!result.done && moreData.length < LOAD_INCREMENT) {
         if (toggleStream) {
           result = await ndjsonStreamer.read();
           moreData.push(result.value);
@@ -65,7 +65,7 @@ const fetchNdjson = (opts) => {
         }
       }
 
-      if (moreData.length === LOAD_INCREMENT) {
+      if (moreData.length === LOAD_INCREMENT && !result.done) {
         setValues((prev) => {
           const temp = moreData;
           moreData = [];
@@ -144,12 +144,15 @@ export default () => {
 
     if (inputStreamSpeed) {
       //
+      const newStreamSpeed = Number(inputStreamSpeed);
+      setCurrentStreamSpeed(newStreamSpeed);
+      TIME_INTERVAL_BETWEEN_LOADS = newStreamSpeed;
     }
   };
   const showForm = () => (
     <div className="mainForm">
       <h3>Update Stream</h3>
-      <form onSubmit={handleButtonClick}>
+      <form onSubmit={handleFormSubmit}>
         <label>
           <input
             ref={formDataSource}
@@ -159,10 +162,10 @@ export default () => {
           <input
             ref={formStreamSpeed}
             type="text"
-            placeholder="Stream update (in ms)"
+            placeholder="Stream speed (in ms)"
           />
         </label>
-        <input type="submit" onClick={handleFormSubmit} value="Submit" />
+        <input type="submit" value="Submit" />
       </form>
     </div>
   );
@@ -177,6 +180,13 @@ export default () => {
         {showForm()}
         <p>
           Source: {currentDataSource} | Speed: {currentStreamSpeed}ms
+          <br />
+          <br />
+          Other Examples:
+          <br />
+          https://dl.dropboxusercontent.com/s/gxbsj271j5pevec/trades.json
+          <br />
+          https://raw.githubusercontent.com/ozlerhakan/mongodb-json-files/master/datasets/city_inspections.json
         </p>
         {currentDataSource === testPayLoadURL && (
           <table className="streamTable">
