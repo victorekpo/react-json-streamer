@@ -20,6 +20,8 @@ const LOAD_INCREMENT = 50;
 const TIME_INTERVAL_BETWEEN_LOADS = 0; // 1 second
 const PAGE_SIZE = 0; // number of batches per page or 0 for only the latest batch
 
+let toggleStream = true;
+
 const fetchNdjson = (val, setVal, setIsLoading) => {
   console.log("fetching");
   let streamedValues = [];
@@ -37,9 +39,12 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
       loadInitial &&
       streamedValues.length < INITIAL_LOAD
     ) {
-      result = await exampleReader.read();
-      streamedValues.push(result.value);
-
+      if (toggleStream) {
+        result = await exampleReader.read();
+        streamedValues.push(result.value);
+      } else {
+        break;
+      }
       if (streamedValues.length === INITIAL_LOAD) {
         setVal(streamedValues);
       }
@@ -49,8 +54,12 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
 
     const loadMore = async () => {
       while (moreData.length < LOAD_INCREMENT) {
-        result = await exampleReader.read();
-        moreData.push(result.value);
+        if (toggleStream) {
+          result = await exampleReader.read();
+          moreData.push(result.value);
+        } else {
+          break;
+        }
       }
 
       if (moreData.length === LOAD_INCREMENT) {
@@ -58,17 +67,18 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
           const temp = moreData;
           moreData = [];
           // console.log(prev.length);
+          console.log("another batch");
           return [...(prev.length === PAGE_SIZE ? prev : []), temp];
         });
       }
 
       // recurse until complete
-      if (!result.done)
+      if (!result.done) {
         setTimeout(async () => {
           await loadMore();
           //  window.scrollTo(0, document.body.scrollHeight);
-          console.log("another batch");
         }, TIME_INTERVAL_BETWEEN_LOADS);
+      }
     };
 
     if (!result.done) await loadMore();
@@ -78,16 +88,28 @@ const fetchNdjson = (val, setVal, setIsLoading) => {
 export default () => {
   const [val, setVal] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [toggle, setToggle] = useState(true);
 
   useEffect(() => {
     fetchNdjson(val, setVal, setIsLoading);
   }, []);
 
+  const handleButtonClick = () => {
+    console.log("ive been clicked");
+    toggleStream = !toggle;
+    setToggle(!toggle);
+    console.log(toggle);
+  };
+
+  const showButton = () => {
+    return <button onClick={handleButtonClick}>Toggle Stream</button>;
+  };
+
   return isLoading ? (
-    "loading"
+    `loading`
   ) : (
     <>
-      <h2>Streaming Results:</h2>
+      <h2>{showButton()}Streaming Results:</h2>
       <table className="streamTable">
         <tbody>
           <tr>
